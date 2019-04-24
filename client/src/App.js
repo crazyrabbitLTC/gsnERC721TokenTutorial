@@ -18,7 +18,7 @@ class App extends Component {
     contract: null,
     route: window.location.pathname.replace("/", ""),
     gaslessNFTName: "none set",
-    totalSupply: "0"
+    totalSupply: 0
   };
 
   getGanacheAddresses = async () => {
@@ -67,7 +67,7 @@ class App extends Component {
         let deployedNetwork = null;
 
         if (GaslessNFT.networks) {
-          console.log("Deployed networks for NFT", GaslessNFT.networks)
+          console.log("Deployed networks for NFT", GaslessNFT.networks);
           deployedNetwork = GaslessNFT.networks[networkId.toString()];
           if (deployedNetwork) {
             gaslessNFTInstance = new web3.eth.Contract(
@@ -145,6 +145,7 @@ class App extends Component {
   initializeGasLessNFT = async () => {
     const { accounts, gaslessNFT } = this.state;
     try {
+      console.log("Minter Account: ", accounts[0]);
       await gaslessNFT.methods
         .initialize("Dennison Token", "DT", [accounts[0]], [accounts[0]])
         .send({ from: accounts[0], gas: 5000000 });
@@ -156,9 +157,10 @@ class App extends Component {
   mintGaslessNFT = async () => {
     const { accounts, gaslessNFT, totalSupply } = this.state;
     try {
-      const tx = await gaslessNFT.methods
-        .mintWithTokenURI(accounts[0], totalSupply + 1, "first Token1")
-        .send({ from: accounts[0], gas: 5000000 });
+      console.log("Account minting: ", accounts[0]);
+      console.log(gaslessNFT);
+      const tx = await gaslessNFT.methods.mintWithTokenURI(accounts[0], totalSupply + 1, "first Token1").send({ from: accounts[0], gas: 5000000 });
+      console.log("after mint");
       console.log(tx);
     } catch (error) {
       console.log(error);
