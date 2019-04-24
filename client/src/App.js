@@ -21,7 +21,8 @@ class App extends Component {
     accounts: null,
     contract: null,
     route: window.location.pathname.replace("/",""),
-    gaslessNFTName: "none set"
+    gaslessNFTName: "none set",
+    totalSupply: "0",
   };
 
   getGanacheAddresses = async () => {
@@ -139,17 +140,12 @@ class App extends Component {
   }
 
   refreshValues = (gaslessNFTInstance, gaslessInstance, instance, instanceWallet) => {
-    if (instance) {
-      this.getCount();
-    }
     if (gaslessInstance) {
       this.getGaslessCount();
     }
     if(gaslessNFTInstance){
       this.getGaslessNFTName();
-    }
-    if (instanceWallet) {
-      this.updateTokenOwner();
+      this.getTotalNFTSupply();
     }
   }
 
@@ -217,8 +213,26 @@ class App extends Component {
   }
 
   mintGaslessNFT = async () => {
-    const {accounts, gaslessNFT} = this.state;
+    const {accounts, gaslessNFT, totalSupply} = this.state;
+    try {
+      const tx = await gaslessNFT.methods.mintWithTokenURI(accounts[0], totalSupply+1, "first Token1").send({from: accounts[0], gas: 5000000});
+      console.log(tx);
+    } catch (error) {
+      console.log(error)
+    }
   }
+
+  getTotalNFTSupply = async () => {
+    const {gaslessNFT} = this.state;
+    try {
+      const response = await gaslessNFT.methods.totalSupply().call();
+      this.setState({ totalSupply: response.toString() });
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+
 
   decreaseGaslessCount = async (number) => {
     const { accounts, gaslessContract } = this.state;
@@ -289,80 +303,14 @@ class App extends Component {
             <Button id='useDeployNFT' onClick={() => this.initializeGasLessNFT()}>
               Initialize Contract
             </Button>
-            The name of your NFT is: {this.state.gaslessNFTName}
-            <div className={styles.widgets}>
-            </div>
-
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  renderGaslessBody() {
-    return (
-      <div className={styles.wrapper}>
-        {!this.state.web3 && this.renderLoader()}
-        {this.state.web3 && !this.state.gaslessContract && (
-          this.renderDeployCheck('gasless-counter')
-        )}
-        {this.state.web3 && this.state.gaslessContract && (
-          <div className={styles.contracts}>
-            <h1>Gasless Counter Contract</h1>
-            <p>In order to make gasless transactions, press the 'Use Relayer' button below. </p>
-            <p>(to stop using relayer simply refresh the page)</p>
-            <Button id='useRelayerBtn' onClick={() => this.useRelayerBtnPress()}>
-              Use Relayer
+            <Button id='mintNFT' onClick={() => this.mintGaslessNFT()}>
+              Mint!
             </Button>
+            The name of your NFT is: {this.state.gaslessNFTName}<br/>
+            The total supply of your NFT is: {this.state.totalSupply}
             <div className={styles.widgets}>
-              <Web3Info {...this.state} />
-              <GaslessCounterUI
-                decrease={this.decreaseGaslessCount}
-                increase={this.increaseGaslessCount}
-                {...this.state} />
             </div>
-              <Instructions
-                ganacheAccounts={this.state.ganacheAccounts}
-                name="gasless-upgrade" accounts={this.state.accounts} />
-          </div>
-        )}
-      </div>
-    );
-  }
 
-  renderBody() {
-    const { hotLoaderDisabled, networkType, accounts, ganacheAccounts } = this.state;
-    const updgradeCommand = (networkType === 'private' && !hotLoaderDisabled) ? "upgrade-auto" : "upgrade";
-    return (
-      <div className={styles.wrapper}>
-        {!this.state.web3 && this.renderLoader()}
-        {this.state.web3 && !this.state.contract && (
-          this.renderDeployCheck('counter')
-        )}
-        {this.state.web3 && this.state.contract && (
-          <div className={styles.contracts}>
-            <h1>Counter Contract is good to Go!</h1>
-            <p>Interact with your contract on the right.</p>
-            <p> You can see your account onfo on the left </p>
-            <div className={styles.widgets}>
-              <Web3Info {...this.state} />
-              <CounterUI
-                decrease={this.decreaseCount}
-                increase={this.increaseCount}
-                {...this.state} />
-            </div>
-            {this.state.balance < 0.1 && (
-              <Instructions
-                ganacheAccounts={ganacheAccounts}
-                name="metamask"
-                accounts={accounts} />
-            )}
-            {this.state.balance >= 0.1 && (
-              <Instructions
-                ganacheAccounts={this.state.ganacheAccounts}
-                name={updgradeCommand}
-                accounts={accounts} />
-            )}
           </div>
         )}
       </div>
@@ -380,42 +328,8 @@ class App extends Component {
     );
   }
 
-  renderFAQ() {
-    return (
-      <div className={styles.wrapper}>
-        <Instructions
-          ganacheAccounts={this.state.ganacheAccounts}
-          name="faq" accounts={this.state.accounts} />
-      </div>
-    );
-  }
 
-  renderEVM() {
-    return (
-      <div className={styles.wrapper}>
-      {!this.state.web3 && this.renderLoader()}
-      {this.state.web3 && !this.state.wallet && (
-        this.renderDeployCheck('evm')
-      )}
-      {this.state.web3 && this.state.wallet && (
-        <div className={styles.contracts}>
-          <h1>Wallet Contract is good to Go!</h1>
-          <p>Interact with your contract on the right.</p>
-          <p> You can see your account onfo on the left </p>
-          <div className={styles.widgets}>
-            <Web3Info {...this.state} />
-            <Wallet
-              renounce={this.renounceOwnership}
-              {...this.state} />
-          </div>
-          <Instructions
-            ganacheAccounts={this.state.ganacheAccounts}
-            name="evm" accounts={this.state.accounts} />
-        </div>
-      )}
-      </div>
-    );
-  }
+
 
   render() {
     return (
@@ -425,8 +339,7 @@ class App extends Component {
           {this.state.route === 'nft' && this.renderGaslessNFTBody()}
           {this.state.route === 'counter' && this.renderBody()}
           {this.state.route === 'gasless-counter' && this.renderGaslessBody()}
-          {this.state.route === 'evm' && this.renderEVM()}
-          {this.state.route === 'faq' && this.renderFAQ()}
+
         <Footer />
       </div>
     );
