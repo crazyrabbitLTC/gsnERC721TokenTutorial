@@ -3,10 +3,6 @@ import getWeb3, { getGanacheWeb3, useRelayer} from "./utils/getWeb3";
 import Header from "./components/Header/index.js";
 import Footer from "./components/Footer/index.js";
 import Hero from "./components/Hero/index.js";
-import Web3Info from "./components/Web3Info/index.js";
-import CounterUI from "./components/Counter/index.js";
-import GaslessCounterUI from "./components/GaslessCounter/index.js";
-import Wallet from "./components/Wallet/index.js";
 import Instructions from "./components/Instructions/index.js";
 import { Loader, Button } from 'rimble-ui';
 
@@ -73,15 +69,7 @@ class App extends Component {
         let instance = null;
         let instanceWallet = null;
         let deployedNetwork = null;
-        if (GaslessCounter.networks) {
-          deployedNetwork = GaslessCounter.networks[networkId.toString()];
-          if (deployedNetwork) {
-            gaslessInstance = new web3.eth.Contract(
-              GaslessCounter.abi,
-              deployedNetwork && deployedNetwork.address,
-            );
-          }
-        }
+
         if (GaslessNFT.networks) {
           deployedNetwork = GaslessNFT.networks[networkId.toString()];
           if (deployedNetwork) {
@@ -91,32 +79,15 @@ class App extends Component {
             );
           }
         }
-        if (Counter.networks) {
-          deployedNetwork = Counter.networks[networkId.toString()];
-          if (deployedNetwork) {
-            instance = new web3.eth.Contract(
-              Counter.abi,
-              deployedNetwork && deployedNetwork.address,
-            );
-          }
-        }
-        if (Wallet.networks) {
-          deployedNetwork = Wallet.networks[networkId.toString()];
-          if (deployedNetwork) {
-            instanceWallet = new web3.eth.Contract(
-              Wallet.abi,
-              deployedNetwork && deployedNetwork.address,
-            );
-          }
-        }
-        if (gaslessNFTInstance || gaslessInstance || instance || instanceWallet) {
+
+        if (gaslessNFTInstance) {
           // Set web3, accounts, and contract to the state, and then proceed with an
           // example of interacting with the contract's methods.
           this.setState({ web3, ganacheAccounts, accounts, balance, networkId, networkType, hotLoaderDisabled,
-            isMetaMask, gaslessNFT: gaslessNFTInstance, gaslessContract: gaslessInstance, contract: instance, wallet: instanceWallet }, () => {
-              this.refreshValues(gaslessNFTInstance, gaslessInstance, instance, instanceWallet);
+            isMetaMask, gaslessNFT: gaslessNFTInstance}, () => {
+              this.refreshValues(gaslessNFTInstance);
               setInterval(() => {
-                this.refreshValues(gaslessNFTInstance, gaslessInstance, instance, instanceWallet);
+                this.refreshValues(gaslessNFTInstance);
               }, 5000);
             });
         }
@@ -139,31 +110,12 @@ class App extends Component {
     }
   }
 
-  refreshValues = (gaslessNFTInstance, gaslessInstance, instance, instanceWallet) => {
-    if (gaslessInstance) {
-      this.getGaslessCount();
-    }
+  refreshValues = (gaslessNFTInstance) => {
     if(gaslessNFTInstance){
       this.getGaslessNFTName();
       this.getTotalNFTSupply();
     }
   }
-
-  getCount = async () => {
-    const { contract } = this.state;
-    // Get the value from the contract to prove it worked.
-    const response = await contract.methods.getCounter().call();
-    // Update state with the result.
-    this.setState({ count: response });
-  };
-
-  getGaslessCount = async () => {
-    const { gaslessContract } = this.state;
-    // Get the value from the contract to prove it worked.
-    const response = await gaslessContract.methods.getCounter().call();
-    // Update state with the result.
-    this.setState({ gaslessCount: response });
-  };
 
   getGaslessNFTName = async () => {
     const {gaslessNFT} = this.state;
