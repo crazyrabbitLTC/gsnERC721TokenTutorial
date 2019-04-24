@@ -21,6 +21,7 @@ class App extends Component {
     accounts: null,
     contract: null,
     route: window.location.pathname.replace("/",""),
+    gaslessNFTName: "none set"
   };
 
   getGanacheAddresses = async () => {
@@ -36,10 +37,12 @@ class App extends Component {
   componentDidMount = async () => {
     const hotLoaderDisabled = zeppelinSolidityHotLoaderOptions.disabled;
     let GaslessCounter = {};
+    let GaslessNFT = {};
     let Counter = {};
     let Wallet = {};
     try {
       GaslessCounter = require("./contracts/GaslessCounter.json");
+      GaslessNFT = require("./contracts/MetaNFT.json");
       Counter = require("./contracts/Counter.json");
       Wallet = require("./contracts/Wallet.json");
     } catch (e) {
@@ -65,6 +68,7 @@ class App extends Component {
         let balance = accounts.length > 0 ? await web3.eth.getBalance(accounts[0]): web3.utils.toWei('0');
         balance = web3.utils.fromWei(balance, 'ether');
         let gaslessInstance = null;
+        let gaslessNFTInstance = null;
         let instance = null;
         let instanceWallet = null;
         let deployedNetwork = null;
@@ -73,6 +77,15 @@ class App extends Component {
           if (deployedNetwork) {
             gaslessInstance = new web3.eth.Contract(
               GaslessCounter.abi,
+              deployedNetwork && deployedNetwork.address,
+            );
+          }
+        }
+        if (GaslessNFT.networks) {
+          deployedNetwork = GaslessNFT.networks[networkId.toString()];
+          if (deployedNetwork) {
+            gaslessNFTInstance = new web3.eth.Contract(
+              GaslessNFT.abi,
               deployedNetwork && deployedNetwork.address,
             );
           }
@@ -95,14 +108,14 @@ class App extends Component {
             );
           }
         }
-        if (gaslessInstance || instance || instanceWallet) {
+        if (gaslessNFTInstance || gaslessInstance || instance || instanceWallet) {
           // Set web3, accounts, and contract to the state, and then proceed with an
           // example of interacting with the contract's methods.
           this.setState({ web3, ganacheAccounts, accounts, balance, networkId, networkType, hotLoaderDisabled,
-            isMetaMask, gaslessContract: gaslessInstance, contract: instance, wallet: instanceWallet }, () => {
-              this.refreshValues(gaslessInstance, instance, instanceWallet);
+            isMetaMask, gaslessNFT: gaslessNFTInstance, gaslessContract: gaslessInstance, contract: instance, wallet: instanceWallet }, () => {
+              this.refreshValues(gaslessNFTInstance, gaslessInstance, instance, instanceWallet);
               setInterval(() => {
-                this.refreshValues(gaslessInstance, instance, instanceWallet);
+                this.refreshValues(gaslessNFTInstance, gaslessInstance, instance, instanceWallet);
               }, 5000);
             });
         }
@@ -125,12 +138,15 @@ class App extends Component {
     }
   }
 
-  refreshValues = (gaslessInstance, instance, instanceWallet) => {
+  refreshValues = (gaslessNFTInstance, gaslessInstance, instance, instanceWallet) => {
     if (instance) {
       this.getCount();
     }
     if (gaslessInstance) {
       this.getGaslessCount();
+    }
+    if(gaslessNFTInstance){
+      this.getGaslessNFTName();
     }
     if (instanceWallet) {
       this.updateTokenOwner();
@@ -152,6 +168,14 @@ class App extends Component {
     // Update state with the result.
     this.setState({ gaslessCount: response });
   };
+
+  getGaslessNFTName = async () => {
+    const {gaslessNFT} = this.state;
+    //Get the Name to prove it's loaded
+    const response = await gaslessNFT.methods.name().call();
+    console.log("Contract NFT name is: ", response);
+    this.setState({gaslessNFTName: response});
+  }
 
   updateTokenOwner = async () => {
     const { wallet, accounts } = this.state;
@@ -183,6 +207,19 @@ class App extends Component {
     this.getGaslessCount();
   };
 
+  initializeGasLessNFT = async () => {
+    const {accounts, gaslessNFT } = this.state;
+    try {
+      await gaslessNFT.methods.initialize("Dennison Token", "DT", [accounts[0]], [accounts[0]]).send({from: accounts[0], gas: 5000000});
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  mintGaslessNFT = async () => {
+    const {accounts, gaslessNFT} = this.state;
+  }
+
   decreaseGaslessCount = async (number) => {
     const { accounts, gaslessContract } = this.state;
     try {
@@ -205,6 +242,7 @@ class App extends Component {
     btn.innerText = 'Using Relayer';
     useRelayer(this.state.web3);
   }
+
 
   renderLoader() {
     return (
@@ -229,6 +267,34 @@ class App extends Component {
         <Instructions
           ganacheAccounts={this.state.ganacheAccounts}
           name={instructionsKey} accounts={this.state.accounts}/>
+      </div>
+    );
+  }
+
+  renderGaslessNFTBody() {
+    return (
+      <div className={styles.wrapper}>
+        {!this.state.web3 && this.renderLoader()}
+        {this.state.web3 && !this.state.gaslessContract && (
+          this.renderDeployCheck('gasless-counter')
+        )}
+        {this.state.web3 && this.state.gaslessContract && (
+          <div className={styles.contracts}>
+            <h1>Gasless NFT Contract</h1>
+            <p>In order to make gasless transactions, press the 'Use Relayer' button below. </p>
+            <p>(to stop using relayer simply refresh the page)</p>
+            <Button id='useRelayerBtn' onClick={() => this.useRelayerBtnPress()}>
+              Use Relayer
+            </Button>
+            <Button id='useDeployNFT' onClick={() => this.initializeGasLessNFT()}>
+              Initialize Contract
+            </Button>
+            The name of your NFT is: {this.state.gaslessNFTName}
+            <div className={styles.widgets}>
+            </div>
+
+          </div>
+        )}
       </div>
     );
   }
@@ -356,6 +422,7 @@ class App extends Component {
       <div className={styles.App}>
         <Header />
           {this.state.route === '' && this.renderInstructions()}
+          {this.state.route === 'nft' && this.renderGaslessNFTBody()}
           {this.state.route === 'counter' && this.renderBody()}
           {this.state.route === 'gasless-counter' && this.renderGaslessBody()}
           {this.state.route === 'evm' && this.renderEVM()}
