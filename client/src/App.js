@@ -35,9 +35,11 @@ class App extends Component {
     const hotLoaderDisabled = zeppelinSolidityHotLoaderOptions.disabled;
 
     let GaslessNFT = {};
+    let RelayHub = {};
 
     try {
       GaslessNFT = require("./contracts/MetaNFT.json");
+      RelayHub = require("./contracts/RelayHub.json");
     } catch (e) {
       console.log(e);
     }
@@ -64,11 +66,13 @@ class App extends Component {
             : web3.utils.toWei("0");
         balance = web3.utils.fromWei(balance, "ether");
         let gaslessNFTInstance = null;
+        let RelayHubInstance = null;
         let deployedNetwork = null;
 
         if (GaslessNFT.networks) {
           console.log("Deployed networks for NFT", GaslessNFT.networks);
           deployedNetwork = GaslessNFT.networks[networkId.toString()];
+          console.log("Deployed Network of gasslessnft is: ", deployedNetwork);
           if (deployedNetwork) {
             gaslessNFTInstance = new web3.eth.Contract(
               GaslessNFT.abi,
@@ -77,7 +81,20 @@ class App extends Component {
           }
         }
 
-        if (gaslessNFTInstance) {
+        if (RelayHub) {
+          //Relay Hub address is set manually for now. 
+          const relayHubAddress = "0x9C57C0F1965D225951FE1B2618C92Eefd687654F";
+          
+          if (deployedNetwork) {
+            RelayHubInstance = new web3.eth.Contract(
+              GaslessNFT.abi,
+              deployedNetwork && relayHubAddress
+            );
+            console.log("Relay hub instance: ", RelayHubInstance);
+          }
+        }
+
+        if (gaslessNFTInstance && RelayHubInstance) {
           // Set web3, accounts, and contract to the state, and then proceed with an
           // example of interacting with the contract's methods.
           this.setState(
@@ -90,7 +107,8 @@ class App extends Component {
               networkType,
               hotLoaderDisabled,
               isMetaMask,
-              gaslessNFT: gaslessNFTInstance
+              gaslessNFT: gaslessNFTInstance,
+              relayHub: RelayHubInstance,
             },
             () => {
               this.refreshValues(gaslessNFTInstance);
@@ -211,6 +229,10 @@ class App extends Component {
     btn.disabled = true;
     btn.innerText = "Using Relayer";
     useRelayer(this.state.web3);
+  }
+
+  initializeRelay() {
+
   }
 
   renderLoader() {
