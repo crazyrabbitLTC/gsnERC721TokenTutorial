@@ -42,7 +42,7 @@ function App () {
     setState({...state, artifactGaslessNFT, artifactRelayHub})
 
     if(verbose) console.log("Artifacts Set");
-  })
+  },[]);
 
   return (<div>Hello</div>)
 }

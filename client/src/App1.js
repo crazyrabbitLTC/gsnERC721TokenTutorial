@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import getWeb3, { getGanacheWeb3, useRelayer } from "./utils/getWeb3";
+//import getWeb3, { getGanacheWeb3, useRelayer } from "./utils/getWeb3";
 import Header from "./components/Header/index.js";
 import Footer from "./components/Footer/index.js";
 import Hero from "./components/Hero/index.js";
