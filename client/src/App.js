@@ -82,9 +82,9 @@ class App extends Component {
         }
 
         if (RelayHub) {
-          //Relay Hub address is set manually for now. 
+          //Relay Hub address is set manually for now.
           const relayHubAddress = "0x9C57C0F1965D225951FE1B2618C92Eefd687654F";
-          
+
           if (deployedNetwork) {
             RelayHubInstance = new web3.eth.Contract(
               GaslessNFT.abi,
@@ -108,7 +108,7 @@ class App extends Component {
               hotLoaderDisabled,
               isMetaMask,
               gaslessNFT: gaslessNFTInstance,
-              relayHub: RelayHubInstance,
+              relayHub: RelayHubInstance
             },
             () => {
               this.refreshValues(gaslessNFTInstance);
@@ -229,10 +229,6 @@ class App extends Component {
     btn.disabled = true;
     btn.innerText = "Using Relayer";
     useRelayer(this.state.web3);
-  }
-
-  initializeRelay() {
-
   }
 
   renderLoader() {
