@@ -52,17 +52,18 @@ function App() {
       console.log(e);
     }
 
-    setState({ ...state, artifactGaslessNFT, artifactRelayHub, isProduction });
+    setState({ ...state, artifactGaslessNFT, artifactRelayHub, isProduction});
 
     if (verbose) console.log("Artifacts Set");
-  }, []);
+  },[state.web3]);
 
   useEffect(() => {
     const isProd = async () => {
       let web3 = {};
       const ganacheAccounts = [];
       const accounts = [];
-
+      if (verbose) console.log("inside here!");
+      
       web3 = await getWeb3();
       if (verbose) console.log("Web3 Loaded");
 
@@ -92,8 +93,10 @@ function App() {
     };
 
     //I don't know why we care if it's production or not.
-    if (!state.isProduction) isProd();
-  },[]);
+    //if (!state.isProduction) isProd();
+console.log("HERE!");
+    isProd();
+  },[state.artifactGaslessNFT]);
 
   return <div>Hello</div>;
 }
