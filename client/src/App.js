@@ -147,7 +147,7 @@ class App extends Component {
     try {
       console.log("Minter Account: ", accounts[0]);
       await gaslessNFT.methods
-        .initialize("Dennison Token", "DT", [accounts[0]], [accounts[0]])
+        .initialize("Dennison Token", "DT", [accounts[0],'0x9C57C0F1965D225951FE1B2618C92Eefd687654F'], [accounts[0]])
         .send({ from: accounts[0], gas: 5000000 });
     } catch (error) {
       console.log(error);
@@ -159,7 +159,7 @@ class App extends Component {
     try {
       console.log("Account minting: ", accounts[0]);
       console.log(gaslessNFT);
-      const tx = await gaslessNFT.methods.mintWithTokenURI(accounts[0], totalSupply + 1, "first Token1").send({ from: accounts[0], gas: 5000000 });
+      const tx = await gaslessNFT.methods.mintWithTokenURI(accounts[0], 1, "first Token1").send({ from: accounts[0], gas: 5000000 });
       console.log("after mint");
       console.log(tx);
     } catch (error) {

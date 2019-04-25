@@ -18,6 +18,10 @@ contract MetaNFT is RelayRecipient, Initializable, StandaloneERC721 {
         return isReady;
     }
 
+    function metaMint(address to, uint256 tokenId, string memory tokenURI) public view returns(bool){
+        mintWithTokenURI()
+    }
+
   function accept_relayed_call(address /*relay*/, address from,
     bytes memory /*encoded_function*/, uint /*gas_price*/, 
     uint /*transaction_fee*/ ) public view returns(uint32) {
