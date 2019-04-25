@@ -20,7 +20,12 @@ function App() {
   const initialState = {
     storageValue: 0,
     web3: null,
-    accounts: null,
+    ganacheAccounts: [],
+    accounts: [],
+    networkId: null,
+    networkType: null,
+    isMetaMask: null,
+    userBalance: null,
     contract: null,
     route: window.location.pathname.replace("/", ""),
     gaslessNFTName: "none set",
@@ -53,16 +58,42 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const web3 = {};
+    const isProd = async () => {
+      let web3 = {};
+      const ganacheAccounts = [];
+      const accounts = [];
 
-    const loadWeb3 = async () => {
       web3 = await getWeb3();
+      if (verbose) console.log("Web3 Loaded");
+
+      ganacheAccounts = await getGanacheAddresses();
+      if (verbose) console.log("Ganache Addresses loaded");
+
+      accounts = await web3.eth.getAccounts();
+      if (verbose) console.log("User Accounts loaded");
+
+      const networkId = await web3.eth.net.getId();
+      if (verbose) console.log(`Network ID is: ${networkId}`);
+
+      const networkType = await web3.eth.net.getNetworkType();
+      if (verbose) console.log(`Network type is: ${networkType}`);
+
+      const isMetaMask = web3.currentProvider.isMetaMask;
+      if (verbose) console.log(`Is current provider metamask: ${isMetaMask}`);
+
+      let balance =
+        accounts.length > 0
+          ? await web3.eth.getBalance(accounts[0])
+          : web3.utils.toWei("0");
+
+      balance = web3.utils.fromWei(balance, "ether");
+
+      setState({...state, web3, ganacheAccounts,accounts,networkId,networkType,isMetaMask,balance});
     };
 
-    const isProd = async () => {};
-
+    //I don't know why we care if it's production or not.
     if (!state.isProduction) isProd();
-  });
+  },[]);
 
   return <div>Hello</div>;
 }
