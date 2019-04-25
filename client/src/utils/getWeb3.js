@@ -60,5 +60,15 @@ const useRelayer = (web3) => {
   console.log('USING RELAYER');
 }
 
+const getGanacheAddresses = async (ganacheProvider) => {
+  if (!ganacheProvider) {
+    ganacheProvider = getGanacheWeb3();
+    return ganacheProvider;
+  } else {
+    return await ganacheProvider.eth.getAccounts();
+  }
+
+};
+
 export default getWeb3;
-export { getGanacheWeb3, useRelayer };
+export { getGanacheWeb3, useRelayer, getGanacheAddresses };
