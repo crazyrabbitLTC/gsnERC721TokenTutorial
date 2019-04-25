@@ -159,7 +159,7 @@ class App extends Component {
     try {
       console.log("Account minting: ", accounts[0]);
       console.log(gaslessNFT);
-      const tx = await gaslessNFT.methods.mintWithTokenURI(accounts[0], 1, "first Token1").send({ from: accounts[0], gas: 5000000 });
+      const tx = await gaslessNFT.methods.mintWithTokenURI(accounts[0], totalSupply+1, "first Token1").send({ from: accounts[0], gas: 5000000 });
       console.log("after mint");
       console.log(tx);
     } catch (error) {
