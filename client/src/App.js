@@ -143,18 +143,18 @@ class App extends Component {
   };
 
   mintGaslessNFT = async (tokenId, tokenURI) => {
-    const { gaslessNFT } = this.state;
+    const { accounts, gaslessNFT } = this.state;
     try {
       const response = await gaslessNFT.methods
         .metaMint(tokenId, tokenURI)
         .send({ from: accounts[0], gas: 5000000 });
     } catch (error) {
-      console.error;
+      console.log(error);
     }
   };
 
   metaTransfer = async (addressTo, tokenId) => {
-    const { gaslessNFT } = this.state;
+    const { accounts, gaslessNFT } = this.state;
     try {
       const response = await gaslessNFT.methods
         .metaTransfer(addressTo, tokenId)
