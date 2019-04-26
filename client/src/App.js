@@ -27,7 +27,8 @@ function App() {
     name: "",
     symbol: "",
     totalSupply: 0,
-    userBalance: 0
+    userBalance: 0,
+    refresh: false,
   };
 
   const [state, setState] = useState(initialState);
@@ -49,23 +50,23 @@ function App() {
       //contractArtifact = require("../../build/contracts/MetaNFT.json");
 
       accounts = await web3.eth.getAccounts();
-      console.log("Accounts", accounts);
+     // console.log("Accounts", accounts);
       networkId = await web3.eth.net.getId();
-      console.log("NetowkrID", networkId);
+      //console.log("NetowkrID", networkId);
       networkType = await web3.eth.net.getNetworkType();
-      console.log("NetworkType", networkType);
+     // console.log("NetworkType", networkType);
 
       if (contractArtifact.networks) {
-        console.log("Contract Artifact: ", contractArtifact);
+     //   console.log("Contract Artifact: ", contractArtifact);
         deployedNetwork = contractArtifact.networks[networkId.toString()];
-        console.log("Deployed NEtwork", deployedNetwork);
+     //   console.log("Deployed NEtwork", deployedNetwork);
         if (deployedNetwork) {
           contractInstance = new web3.eth.Contract(
             contractArtifact.abi,
             deployedNetwork && deployedNetwork.address
           );
         }
-        console.log("Contract Instance", contractInstance);
+    //    console.log("Contract Instance", contractInstance);
       }
 
       setState({
@@ -80,7 +81,7 @@ function App() {
     };
 
     loadNetworkDetails();
-    console.log("THE STATE", state);
+    //console.log("THE STATE", state);
   }, [state.appReady, window.ethereum]);
 
   const refreshApp = () => {
@@ -99,7 +100,7 @@ function App() {
 
   const switchToRelayer = () => {
     const RelayProvider = tabookey.RelayProvider;
-
+    console.log("Relay provider:", RelayProvider);
     var provider = new RelayProvider(state.web3.currentProvider, {
       txfee: 12,
       force_gasLimit: 6000000
@@ -123,7 +124,7 @@ function App() {
       totalSupply = Number(totalSupply.toString());
       userBalance = Number(userBalance.toString());
 
-      setContractState({ name, symbol, totalSupply, userBalance });
+      setContractState({ name, symbol, totalSupply, userBalance, refresh: false });
     };
 
     if (state.appReady) loadContract();
@@ -137,7 +138,7 @@ function App() {
     try {
       const tx = await contractInstance.methods
         .mintWithTokenURI(accounts[0], totalSupply + 1, "first Token1")
-        .send({ from: accounts[0], gas: 5000000 });
+        .send({ from: accounts[0]});
       console.log("after mint");
       console.log(tx);
     } catch (error) {
