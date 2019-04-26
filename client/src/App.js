@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 // import { switchToRelayer } from "./utils/getWeb3";
 import Header from "./components/Header/index.js";
 import Footer from "./components/Footer/index.js";
-// import Hero from "./components/Hero/index.js";
-// import Instructions from "./components/Instructions/index.js";
-import { zeppelinSolidityHotLoaderOptions } from '../config/webpack';
+import { zeppelinSolidityHotLoaderOptions } from "../config/webpack";
 
 import { Loader, Button } from "rimble-ui";
 import styles from "./App.module.scss";
@@ -38,30 +36,28 @@ function App() {
     appReady: false
   };
 
-
-
   const [state, setState] = useState(initialState);
 
   useEffect(() => {
-    console.log("Reading state before:", state);
     const hotLoaderDisabled = zeppelinSolidityHotLoaderOptions.disabled;
 
     const loadNetworkDetails = async () => {
       const web3 = await getWeb3();
-      console.log("Web!", web3);
+
       let deployedNetwork = null;
       let networkId = null;
       let networkType = null;
       let accounts = [];
       let contractArtifact = null;
       let contractInstance = null;
+      let appReady = state.appReady;
 
       contractArtifact = require("../../contracts/MetaNFT.sol");
-      console.log(contractArtifact);
 
       accounts = await web3.eth.getAccounts();
+
       networkId = await web3.eth.net.getId();
-      console.log(networkId);
+
       networkType = await web3.eth.net.getNetworkType();
 
       if (contractArtifact.networks) {
@@ -74,6 +70,8 @@ function App() {
           );
         }
       }
+
+      appReady = true;
       setState({
         ...state,
         web3,
@@ -81,21 +79,15 @@ function App() {
         networkId,
         networkType,
         contractInstance,
+        appReady
       });
     };
 
     loadNetworkDetails();
-  }, []);
+  }, [state.appReady]);
 
-  useEffect(() => {
-    console.log("Other state", state);
-    if (contractInstance) {
-      setState({ ...state, gaslessNFT: contractInstance });
-    }
-  });
-
-  const resetApp = () => {
-    setState({ ...state, reset: true });
+  const refreshApp = () => {
+    setState({ ...state, appReady: false });
   };
 
   const renderLoader = () => {
@@ -108,38 +100,30 @@ function App() {
     );
   };
 
-  const switchToRelayerBtnPress = () => {
-    var btn = document.getElementById("switchToRelayerBtn");
-    btn.disabled = true;
-    btn.innerText = "Using Relayer";
-    switchToRelayer(state.web3);
-  };
 
   const switchToRelayer = () => {
     const RelayProvider = tabookey.RelayProvider;
-    console.log("what is current provider?", state.web3);
+
     var provider = new RelayProvider(state.web3.currentProvider, {
       txfee: 12,
       force_gasLimit: 6000000
     });
     state.web3.setProvider(provider);
-    if (verbose) console.log("USING RELAYER");
+    console.log("Using Relayer");
   };
 
   const getGaslessNFTName = async () => {
-    const { gaslessNFT } = state;
+    const { contractInstance } = state;
     //Get the Name to prove it's loaded
-    const response = await gaslessNFT.methods.name().call();
-    console.log("Contract NFT name is: ", response);
+    const response = await contractInstance.methods.name().call();
+
     this.setState({ gaslessNFTName: response });
   };
 
   const mintGaslessNFT = async () => {
-    const { accounts, gaslessNFT, totalSupply } = state;
+    const { accounts, contractInstance, totalSupply } = state;
     try {
-      console.log("Account minting: ", accounts[0]);
-      console.log(gaslessNFT);
-      const tx = await gaslessNFT.methods
+      const tx = await contractInstance.methods
         .mintWithTokenURI(accounts[0], totalSupply + 1, "first Token1")
         .send({ from: accounts[0], gas: 5000000 });
       console.log("after mint");
@@ -150,11 +134,10 @@ function App() {
   };
 
   const initializeGasLessNFT = async () => {
-    const { accounts, gaslessNFTInstance } = state;
-    console.log("Before initialize: ", gaslessNFTInstance);
+    const { accounts, contractInstance } = state;
     try {
       console.log("Minter Account: ", accounts[0]);
-      await gaslessNFTInstance.methods
+      await contractInstance.methods
         .initialize(
           "Dennison Token",
           "DT",
@@ -168,7 +151,6 @@ function App() {
   };
 
   const renderGaslessNFTBody = () => {
-    if (verbose) console.log("Rendering inside GasLessNFTBody");
     return (
       <div className={styles.wrapper}>
         {!state.web3 && renderLoader()}
@@ -185,7 +167,7 @@ function App() {
             <p>(to stop using relayer simply refresh the page)</p>
             <Button
               id="switchToRelayerBtn"
-              onClick={() => switchToRelayerBtnPress()}
+              onClick={() => switchToRelayer()}
             >
               Use Relayer
             </Button>
@@ -195,6 +177,7 @@ function App() {
             <Button id="mintNFT" onClick={() => mintGaslessNFT()}>
               Mint!
             </Button>
+            <Button onClick={() => refreshApp()}>Refresh</Button>
             The name of your NFT is: {state.gaslessNFTName}
             <br />
             The total supply of your NFT is: {state.totalSupply}
