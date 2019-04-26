@@ -27,7 +27,7 @@ function App() {
     symbol: "",
     totalSupply: 0,
     userBalance: 0,
-    refresh: false,
+    refresh: false
   };
 
   const [state, setState] = useState(initialState);
@@ -47,27 +47,25 @@ function App() {
 
       contractArtifact = require("../../contracts/MetaNFT.sol");
       //contractArtifact = require("../../build/contracts/MetaNFT.json");
-      
-      //figure out where to put this. 
+
+      //figure out where to put this.
       window.ethereum.enable();
+
       accounts = await web3.eth.getAccounts();
-     // console.log("Accounts", accounts);
+
       networkId = await web3.eth.net.getId();
-      //console.log("NetowkrID", networkId);
+
       networkType = await web3.eth.net.getNetworkType();
-     // console.log("NetworkType", networkType);
 
       if (contractArtifact.networks) {
-     //   console.log("Contract Artifact: ", contractArtifact);
         deployedNetwork = contractArtifact.networks[networkId.toString()];
-     //   console.log("Deployed NEtwork", deployedNetwork);
+
         if (deployedNetwork) {
           contractInstance = new web3.eth.Contract(
             contractArtifact.abi,
             deployedNetwork && deployedNetwork.address
           );
         }
-    //    console.log("Contract Instance", contractInstance);
       }
 
       setState({
@@ -82,8 +80,51 @@ function App() {
     };
 
     loadNetworkDetails();
-    //console.log("THE STATE", state);
   }, [state.appReady, window.ethereum]);
+
+  useEffect(() => {
+    let { name, symbol, totalSupply, userBalance } = initialContractState;
+    let { contractInstance, accounts } = state;
+
+    const loadContract = async () => {
+      name = await contractInstance.methods.name().call();
+      symbol = await contractInstance.methods.symbol().call();
+      totalSupply = await contractInstance.methods.totalSupply().call();
+      userBalance = await contractInstance.methods
+        .balanceOf(accounts[0])
+        .call();
+
+      totalSupply = Number(totalSupply.toString());
+      userBalance = Number(userBalance.toString());
+
+      setContractState({
+        ...contractState,
+        name,
+        symbol,
+        totalSupply,
+        userBalance,
+        refresh: false
+      });
+    };
+
+    if (state.appReady) loadContract();
+  }, [state.appReady]);
+
+  //Figure out why this doesn't work. 
+  // useEffect(() => {
+  //   const interval = () => {
+  //    return  setInterval(setState({ ...state, refresh: true }), 2000);
+  //   };
+
+  //   let value = interval();
+  //   return function cleanup(value) {
+  //     clearInterval(interval);
+  //   };
+
+  //   console.log(interval());
+
+    
+  // }, []);
 
   const refreshApp = () => {
     setState({ ...state, appReady: false });
@@ -110,38 +151,17 @@ function App() {
     console.log("Using Relayer");
   };
 
-  useEffect(() => {
-    let { name, symbol, totalSupply, userBalance } = initialContractState;
-    let { contractInstance, accounts } = state;
-
-    const loadContract = async () => {
-      name = await contractInstance.methods.name().call();
-      symbol = await contractInstance.methods.symbol().call();
-      totalSupply = await contractInstance.methods.totalSupply().call();
-      userBalance = await contractInstance.methods
-        .balanceOf(accounts[0])
-        .call();
-
-      totalSupply = Number(totalSupply.toString());
-      userBalance = Number(userBalance.toString());
-
-      setContractState({ name, symbol, totalSupply, userBalance, refresh: false });
-    };
-
-    if (state.appReady) loadContract();
-  }, [state.appReady]);
-
-
-
   const mintGaslessNFT = async () => {
-    const { accounts, contractInstance} = state;
-    const {totalSupply} = contractState;
+    const { accounts, contractInstance } = state;
+    const { totalSupply } = contractState;
+    console.log("Minting!");
     try {
       const tx = await contractInstance.methods
         .mintWithTokenURI(accounts[0], totalSupply + 1, "first Token1")
-        .send({ from: accounts[0]});
+        .send({ from: accounts[0], gas: 5000000 });
       console.log("after mint");
       console.log(tx);
+      setContractState({ ...contractState, refresh: true });
     } catch (error) {
       console.log(error);
     }
@@ -180,16 +200,26 @@ function App() {
               button below.{" "}
             </p>
             <p>(to stop using relayer simply refresh the page)</p>
-            <Button size="small" id="switchToRelayerBtn" onClick={() => switchToRelayer()}>
+            <Button
+              size="small"
+              id="switchToRelayerBtn"
+              onClick={() => switchToRelayer()}
+            >
               Use Relayer
             </Button>
-            <Button size="small" id="useDeployNFT" onClick={() => initializeGasLessNFT()}>
+            <Button
+              size="small"
+              id="useDeployNFT"
+              onClick={() => initializeGasLessNFT()}
+            >
               Initialize Contract
             </Button>
             <Button size="small" id="mintNFT" onClick={() => mintGaslessNFT()}>
               Mint!
             </Button>
-            <Button size="small" onClick={() => refreshApp()}>Refresh</Button>
+            <Button size="small" onClick={() => refreshApp()}>
+              Refresh
+            </Button>
             The name of your NFT is: {contractState.name}
             <br />
             The total supply of your NFT is: {contractState.totalSupply}
@@ -204,7 +234,9 @@ function App() {
     <div>
       <Header />
       {state.route === "nft" && renderGaslessNFTBody()}
-      <Button size="small" onClick={event => refreshApp()}>Refresh</Button>
+      <Button size="small" onClick={event => refreshApp()}>
+        Refresh
+      </Button>
       <Footer />
     </div>
   );
