@@ -48,14 +48,16 @@ function App() {
       console.log("NetworkType", networkType);
 
       if (contractArtifact.networks) {
+        console.log("Contract Artifact: ", contractArtifact);
         deployedNetwork = contractArtifact.networks[networkId.toString()];
-
+        console.log("Deployed NEtwork", deployedNetwork);
         if (deployedNetwork) {
           contractInstance = new web3.eth.Contract(
             contractArtifact.abi,
             deployedNetwork && deployedNetwork.address
           );
         }
+        console.log("Contract Instance", contractInstance);
       }
 
       setState({
@@ -70,8 +72,8 @@ function App() {
     };
 
     loadNetworkDetails();
-    console.log(state);
-  }, [state.appReady]);
+    console.log("THE STATE", state);
+  }, [state.appReady, window.ethereum]);
 
   const refreshApp = () => {
     setState({ ...state, appReady: false });
@@ -98,12 +100,20 @@ function App() {
     console.log("Using Relayer");
   };
 
+  useEffect(() => {
+
+    const loadContract = () => {
+      getGaslessNFTName();
+    }
+
+    if(state.appReady) loadContract();
+  },[state.appReady])
   const getGaslessNFTName = async () => {
     const { contractInstance } = state;
     //Get the Name to prove it's loaded
     const response = await contractInstance.methods.name().call();
-
-    this.setState({ gaslessNFTName: response });
+console.log(response);
+    //this.setState({ gaslessNFTName: response });
   };
 
   const mintGaslessNFT = async () => {
@@ -123,7 +133,7 @@ function App() {
     const { accounts, contractInstance } = state;
     try {
       console.log("Minter Account: ", accounts[0]);
-      await contractInstance.methods
+      const tx = await contractInstance.methods
         .initialize(
           "Dennison Token",
           "DT",
@@ -131,6 +141,7 @@ function App() {
           [accounts[0]]
         )
         .send({ from: accounts[0], gas: 5000000 });
+        console.log("Transaction: ", tx)
     } catch (error) {
       console.log(error);
     }
@@ -174,7 +185,7 @@ function App() {
   return (
     <div>
       <Header />
-      {/* {state.route === "nft" && renderGaslessNFTBody()} */}
+      {state.route === "nft" && renderGaslessNFTBody()}
       <Button onClick={event => refreshApp()}>
         Refresh
       </Button>
