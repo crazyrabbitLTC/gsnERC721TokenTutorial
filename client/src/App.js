@@ -123,7 +123,7 @@ function App() {
     setState({ ...state, artifactGaslessNFT, artifactRelayHub, isProduction});
 
     if (verbose) console.log("Artifacts Set");
-  },[state.web3]);
+  },[state.reset]);
 
   //load network details
   useEffect(() => {
@@ -156,7 +156,7 @@ function App() {
           : state.web3.utils.toWei("0");
 
       balance = state.web3.utils.fromWei(balance, "ether");
-      if(verbose) console.log(balance);
+      if(verbose) console.log(`The current Account balance is: ${balance}`);
 
       setState({...state, web3, ganacheAccounts,accounts,networkId,networkType,isMetaMask,balance});
     };
@@ -168,7 +168,15 @@ function App() {
 
   },[state.web3]);
 
-  return <div>Hello</div>;
+  const reset = () => {
+    setState({...state, reset: true});
+  }
+
+  return <div>Hello
+    <button>
+      
+    </button>
+  </div>;
 }
 
 export default App;
