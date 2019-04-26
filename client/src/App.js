@@ -3,6 +3,8 @@ import Header from "./components/Header/index.js";
 import Footer from "./components/Footer/index.js";
 import { zeppelinSolidityHotLoaderOptions } from "../config/webpack";
 
+import AppContainer from "./components/Token/AppContainer.js";
+
 import { Loader, Button } from "rimble-ui";
 import styles from "./App.module.scss";
 
@@ -215,8 +217,10 @@ function externalDevRender(state, renderLoader, switchToRelayer, initializeGasLe
         <br />
         The total supply of your NFT is: {contractState.totalSupply}
         <div className={styles.widgets} />
+        <AppContainer/>
       </div>)}
     </div>);
   };
 }
+
 
