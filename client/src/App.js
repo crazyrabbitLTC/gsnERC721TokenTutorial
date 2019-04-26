@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 // import Footer from "./components/Footer/index.js";
 // import Hero from "./components/Hero/index.js";
 // import Instructions from "./components/Instructions/index.js";
-// import { Loader, Button } from "rimble-ui";
+import { Loader, Button } from "rimble-ui";
 import { zeppelinSolidityHotLoaderOptions } from "../config/webpack";
 //import styles from "./App.module.scss";
 
@@ -158,7 +158,7 @@ function App() {
       balance = state.web3.utils.fromWei(balance, "ether");
       if(verbose) console.log(`The current Account balance is: ${balance}`);
 
-      setState({...state, web3, ganacheAccounts,accounts,networkId,networkType,isMetaMask,balance});
+      setState({...state, web3, ganacheAccounts,accounts,networkId,networkType,isMetaMask,balance, reset: false});
     };
 
 
@@ -172,10 +172,10 @@ function App() {
     setState({...state, reset: true});
   }
 
-  return <div>Hello
-    <button>
-      
-    </button>
+  return <div>Hello<br/>
+<Button size="small" onClick={event => reset()}>
+  Reset App
+</Button>
   </div>;
 }
 
