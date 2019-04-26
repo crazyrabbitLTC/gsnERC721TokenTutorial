@@ -7,7 +7,7 @@ import "tabookey-gasless/contracts/RelayRecipient.sol";
 
 contract MetaNFT is RelayRecipient, Initializable, StandaloneERC721 {
     
-    bool public isReady = false;
+    bool public isReady;
 
     function initialize(string memory name, string memory symbol, address[] memory minters, address[] memory pausers) public initializer {
     StandaloneERC721.initialize(name, symbol, minters, pausers);

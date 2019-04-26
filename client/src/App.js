@@ -4,6 +4,7 @@ import Header from "./components/Header/index.js";
 import Footer from "./components/Footer/index.js";
 // import Hero from "./components/Hero/index.js";
 // import Instructions from "./components/Instructions/index.js";
+import { zeppelinSolidityHotLoaderOptions } from '../config/webpack';
 
 import { Loader, Button } from "rimble-ui";
 import styles from "./App.module.scss";
@@ -17,7 +18,7 @@ let verbose = true;
 
 function App() {
   const initialState = {
-    storageValue: 0,
+    contractInstance,
     web3: null,
     web3Loaded: false,
     drizzleUtils: null,
@@ -37,87 +38,61 @@ function App() {
     appReady: false
   };
 
+
+
   const [state, setState] = useState(initialState);
 
-  //load web3
   useEffect(() => {
-    const loadWeb3 = async () => {
-      const web3 = await getWeb3();
-      const drizzleUtils = await createDrizzleUtils({ web3 });
+    console.log("Reading state before:", state);
+    const hotLoaderDisabled = zeppelinSolidityHotLoaderOptions.disabled;
 
-      setState({ ...state, web3, drizzleUtils, web3Loaded: true });
-    };
-
-    if (!state.web3) loadWeb3();
-  }, []);
-
-  //load network details
-  useEffect(() => {
     const loadNetworkDetails = async () => {
-      let gaslessNFTInstance = null;
-      let relayHubInstance = null;
+      const web3 = await getWeb3();
+      console.log("Web!", web3);
       let deployedNetwork = null;
-      let ganacheAccounts = [];
+      let networkId = null;
+      let networkType = null;
       let accounts = [];
+      let contractArtifact = null;
+      let contractInstance = null;
 
-      let artifactGaslessNFT = {};
+      contractArtifact = require("../../contracts/MetaNFT.sol");
+      console.log(contractArtifact);
 
-      try {
-        artifactGaslessNFT = require("./contracts/MetaNFT.json");
-      } catch (e) {
-        console.log(e);
-      }
+      accounts = await web3.eth.getAccounts();
+      networkId = await web3.eth.net.getId();
+      console.log(networkId);
+      networkType = await web3.eth.net.getNetworkType();
 
-      accounts = await state.web3.eth.getAccounts();
-      console.log("Accounts:", accounts);
-      const networkId = await state.web3.eth.net.getId();
-      const networkType = await state.web3.eth.net.getNetworkType();
-      const isMetaMask = window.ethereum.isMetaMask;
-      let balance =
-        accounts.length > 0
-          ? await state.web3.eth.getBalance(accounts[0])
-          : state.web3.utils.toWei("0");
-
-      balance = state.web3.utils.fromWei(balance, "ether");
-
-      if (artifactGaslessNFT.networks) {
-        deployedNetwork = artifactGaslessNFT.networks[networkId.toString()];
+      if (contractArtifact.networks) {
+        deployedNetwork = contractArtifact.networks[networkId.toString()];
 
         if (deployedNetwork) {
-          gaslessNFTInstance = new state.web3.eth.Contract(
-            artifactGaslessNFT.abi,
+          contractInstance = new web3.eth.Contract(
+            contractArtifact.abi,
             deployedNetwork && deployedNetwork.address
           );
         }
       }
-      contractInstance = gaslessNFTInstance;
-
       setState({
         ...state,
-        ganacheAccounts,
+        web3,
         accounts,
         networkId,
         networkType,
-        isMetaMask,
-        balance,
-        gaslessNFTInstance: contractInstance,
-        appReady: true,
-        artifactGaslessNFT,
-        
+        contractInstance,
       });
-
-
     };
 
-    if (state.web3) loadNetworkDetails();
-  }, [state.web3]);
+    loadNetworkDetails();
+  }, []);
 
-  useEffect(()=> {
-
-    if(contractInstance){
-      setState({...state, gaslessNFT: contractInstance })
+  useEffect(() => {
+    console.log("Other state", state);
+    if (contractInstance) {
+      setState({ ...state, gaslessNFT: contractInstance });
     }
-  }, [contractInstance]);
+  });
 
   const resetApp = () => {
     setState({ ...state, reset: true });
@@ -176,7 +151,7 @@ function App() {
 
   const initializeGasLessNFT = async () => {
     const { accounts, gaslessNFTInstance } = state;
-  console.log("Before initialize: ", gaslessNFTInstance);
+    console.log("Before initialize: ", gaslessNFTInstance);
     try {
       console.log("Minter Account: ", accounts[0]);
       await gaslessNFTInstance.methods
@@ -231,9 +206,10 @@ function App() {
   };
 
   return (
-    <div><Header/>
+    <div>
+      <Header />
       {state.route === "nft" && renderGaslessNFTBody()}
-      <Footer/>
+      <Footer />
     </div>
   );
 }
