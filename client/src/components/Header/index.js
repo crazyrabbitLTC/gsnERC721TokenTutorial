@@ -8,7 +8,7 @@ const Header = () => (
       <div className={styles.brand}>
         <a href="/" className={styles.link}> <img src={logo} alt="logo" /></a>
       </div>
-      <ul>
+      {/* <ul>
         <li><a href="/" className={styles.link}> Setup</a></li>
         {process.env.NODE_ENV !== 'production' && (
           <li><a href="/counter" className={styles.link}> Counter</a></li>
@@ -20,7 +20,7 @@ const Header = () => (
           <li><a href="/evm" className={styles.link}> EVM Packages</a></li>
         )}
         <li><a href="/faq" className={styles.link}> FAQ</a></li>
-      </ul>
+      </ul> */}
     </nav>
   </div>
 )

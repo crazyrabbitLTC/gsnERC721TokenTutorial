@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
 // import { switchToRelayer } from "./utils/getWeb3";
-// import Header from "./components/Header/index.js";
-// import Footer from "./components/Footer/index.js";
+import Header from "./components/Header/index.js";
+import Footer from "./components/Footer/index.js";
 // import Hero from "./components/Hero/index.js";
 // import Instructions from "./components/Instructions/index.js";
 
 import { Loader, Button } from "rimble-ui";
 import styles from "./App.module.scss";
-//import { thisExpression } from "@babel/types";
-
-//const Web3 = require("web3");
 
 const tabookey = require("tabookey-gasless");
 const getWeb3 = require("@drizzle-utils/get-web3");
@@ -234,16 +231,9 @@ function App() {
   };
 
   return (
-    <div>
-      Hello
-      <br />
+    <div><Header/>
       {state.route === "nft" && renderGaslessNFTBody()}
-      <Button size="small" onClick={event => resetApp()}>
-        Reset App
-      </Button>
-      <Button size="small" onClick={event => switchToRelayer()}>
-        User Relayer
-      </Button>
+      <Footer/>
     </div>
   );
 }
