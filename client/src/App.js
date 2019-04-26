@@ -24,11 +24,10 @@ function App() {
   };
 
   const initialContractState = {
-    name: null,
-    symbol: null,
-    totalSupply: null,
-    address: null,
-    userBalance: null
+    name: "",
+    symbol: "",
+    totalSupply: 0,
+    userBalance: 0
   };
 
   const [state, setState] = useState(initialState);
@@ -110,40 +109,31 @@ function App() {
   };
 
   useEffect(() => {
-    let {
-      name,
-      symbol,
-      totalSupply,
-      userBalance
-    } = initialContractState;
-    let {contractInstance, accounts} = state;
+    let { name, symbol, totalSupply, userBalance } = initialContractState;
+    let { contractInstance, accounts } = state;
 
     const loadContract = async () => {
       name = await contractInstance.methods.name().call();
       symbol = await contractInstance.methods.symbol().call();
       totalSupply = await contractInstance.methods.totalSupply().call();
-      userBalance = await contractInstance.methods.balanceOf(accounts[0]).call();
-    
+      userBalance = await contractInstance.methods
+        .balanceOf(accounts[0])
+        .call();
+
       totalSupply = Number(totalSupply.toString());
       userBalance = Number(userBalance.toString());
-      
 
-       setContractState({name, symbol,totalSupply,userBalance,})
+      setContractState({ name, symbol, totalSupply, userBalance });
     };
 
     if (state.appReady) loadContract();
   }, [state.appReady]);
 
-  const getNFTName = async () => {
-    const { contractInstance } = state;
-    //Get the Name to prove it's loaded
-    const response = await contractInstance.methods.name().call();
-    console.log(response);
-    return response;
-  };
+
 
   const mintGaslessNFT = async () => {
-    const { accounts, contractInstance, totalSupply } = state;
+    const { accounts, contractInstance} = state;
+    const {totalSupply} = contractState;
     try {
       const tx = await contractInstance.methods
         .mintWithTokenURI(accounts[0], totalSupply + 1, "first Token1")
@@ -188,19 +178,19 @@ function App() {
               button below.{" "}
             </p>
             <p>(to stop using relayer simply refresh the page)</p>
-            <Button id="switchToRelayerBtn" onClick={() => switchToRelayer()}>
+            <Button size="small" id="switchToRelayerBtn" onClick={() => switchToRelayer()}>
               Use Relayer
             </Button>
-            <Button id="useDeployNFT" onClick={() => initializeGasLessNFT()}>
+            <Button size="small" id="useDeployNFT" onClick={() => initializeGasLessNFT()}>
               Initialize Contract
             </Button>
-            <Button id="mintNFT" onClick={() => mintGaslessNFT()}>
+            <Button size="small" id="mintNFT" onClick={() => mintGaslessNFT()}>
               Mint!
             </Button>
-            <Button onClick={() => refreshApp()}>Refresh</Button>
-            The name of your NFT is: {state.gaslessNFTName}
+            <Button size="small" onClick={() => refreshApp()}>Refresh</Button>
+            The name of your NFT is: {contractState.name}
             <br />
-            The total supply of your NFT is: {state.totalSupply}
+            The total supply of your NFT is: {contractState.totalSupply}
             <div className={styles.widgets} />
           </div>
         )}
@@ -212,7 +202,7 @@ function App() {
     <div>
       <Header />
       {state.route === "nft" && renderGaslessNFTBody()}
-      <Button onClick={event => refreshApp()}>Refresh</Button>
+      <Button size="small" onClick={event => refreshApp()}>Refresh</Button>
       <Footer />
     </div>
   );
