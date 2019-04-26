@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-// import { switchToRelayer } from "./utils/getWeb3";
 import Header from "./components/Header/index.js";
 import Footer from "./components/Footer/index.js";
 import { zeppelinSolidityHotLoaderOptions } from "../config/webpack";
@@ -9,31 +8,19 @@ import styles from "./App.module.scss";
 
 const tabookey = require("tabookey-gasless");
 const getWeb3 = require("@drizzle-utils/get-web3");
-const createDrizzleUtils = require("@drizzle-utils/core");
 let contractInstance;
-
-let verbose = true;
 
 function App() {
   const initialState = {
-    contractInstance,
     web3: null,
-    web3Loaded: false,
-    drizzleUtils: null,
-    web3AccessEnabled: false,
-    ganacheAccounts: [],
-    accounts: [],
+    accounts: null,
     networkId: null,
     networkType: null,
-    isMetaMask: null,
     route: window.location.pathname.replace("/", ""),
-    gaslessNFTName: "none set",
+    contractInstance: null,
+    appReady: false,
     totalSupply: 0,
-    artifactGaslessNFT: {},
-    artifactRelayHub: {},
-    gaslessNFTInstance: null,
-    relayHubInstance: null,
-    appReady: false
+    gaslessNFTName: "none set"
   };
 
   const [state, setState] = useState(initialState);
@@ -43,22 +30,22 @@ function App() {
 
     const loadNetworkDetails = async () => {
       const web3 = await getWeb3();
-
       let deployedNetwork = null;
       let networkId = null;
       let networkType = null;
       let accounts = [];
       let contractArtifact = null;
       let contractInstance = null;
-      let appReady = state.appReady;
 
       contractArtifact = require("../../contracts/MetaNFT.sol");
+      //contractArtifact = require("../../build/contracts/MetaNFT.json");
 
       accounts = await web3.eth.getAccounts();
-
+      console.log("Accounts", accounts);
       networkId = await web3.eth.net.getId();
-
+      console.log("NetowkrID", networkId);
       networkType = await web3.eth.net.getNetworkType();
+      console.log("NetworkType", networkType);
 
       if (contractArtifact.networks) {
         deployedNetwork = contractArtifact.networks[networkId.toString()];
@@ -71,7 +58,6 @@ function App() {
         }
       }
 
-      appReady = true;
       setState({
         ...state,
         web3,
@@ -79,11 +65,12 @@ function App() {
         networkId,
         networkType,
         contractInstance,
-        appReady
+        appReady: true
       });
     };
 
     loadNetworkDetails();
+    console.log(state);
   }, [state.appReady]);
 
   const refreshApp = () => {
@@ -99,7 +86,6 @@ function App() {
       </div>
     );
   };
-
 
   const switchToRelayer = () => {
     const RelayProvider = tabookey.RelayProvider;
@@ -165,10 +151,7 @@ function App() {
               button below.{" "}
             </p>
             <p>(to stop using relayer simply refresh the page)</p>
-            <Button
-              id="switchToRelayerBtn"
-              onClick={() => switchToRelayer()}
-            >
+            <Button id="switchToRelayerBtn" onClick={() => switchToRelayer()}>
               Use Relayer
             </Button>
             <Button id="useDeployNFT" onClick={() => initializeGasLessNFT()}>
@@ -191,7 +174,10 @@ function App() {
   return (
     <div>
       <Header />
-      {state.route === "nft" && renderGaslessNFTBody()}
+      {/* {state.route === "nft" && renderGaslessNFTBody()} */}
+      <Button onClick={event => refreshApp()}>
+        Refresh
+      </Button>
       <Footer />
     </div>
   );
