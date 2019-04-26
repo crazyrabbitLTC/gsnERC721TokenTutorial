@@ -8,7 +8,6 @@ import styles from "./App.module.scss";
 
 const tabookey = require("tabookey-gasless");
 const getWeb3 = require("@drizzle-utils/get-web3");
-let contractInstance;
 
 function App() {
   const initialState = {
@@ -48,7 +47,9 @@ function App() {
 
       contractArtifact = require("../../contracts/MetaNFT.sol");
       //contractArtifact = require("../../build/contracts/MetaNFT.json");
-
+      
+      //figure out where to put this. 
+      window.ethereum.enable();
       accounts = await web3.eth.getAccounts();
      // console.log("Accounts", accounts);
       networkId = await web3.eth.net.getId();
