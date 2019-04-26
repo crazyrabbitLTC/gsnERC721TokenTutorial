@@ -23,7 +23,16 @@ function App() {
     gaslessNFTName: "none set"
   };
 
+  const initialContractState = {
+    name: null,
+    symbol: null,
+    totalSupply: null,
+    address: null,
+    userBalance: null
+  };
+
   const [state, setState] = useState(initialState);
+  const [contractState, setContractState] = useState(initialContractState);
 
   useEffect(() => {
     const hotLoaderDisabled = zeppelinSolidityHotLoaderOptions.disabled;
@@ -101,19 +110,36 @@ function App() {
   };
 
   useEffect(() => {
+    let {
+      name,
+      symbol,
+      totalSupply,
+      userBalance
+    } = initialContractState;
+    let {contractInstance, accounts} = state;
 
-    const loadContract = () => {
-      getGaslessNFTName();
-    }
+    const loadContract = async () => {
+      name = await contractInstance.methods.name().call();
+      symbol = await contractInstance.methods.symbol().call();
+      totalSupply = await contractInstance.methods.totalSupply().call();
+      userBalance = await contractInstance.methods.balanceOf(accounts[0]).call();
+    
+      totalSupply = Number(totalSupply.toString());
+      userBalance = Number(userBalance.toString());
+      
 
-    if(state.appReady) loadContract();
-  },[state.appReady])
-  const getGaslessNFTName = async () => {
+       setContractState({name, symbol,totalSupply,userBalance,})
+    };
+
+    if (state.appReady) loadContract();
+  }, [state.appReady]);
+
+  const getNFTName = async () => {
     const { contractInstance } = state;
     //Get the Name to prove it's loaded
     const response = await contractInstance.methods.name().call();
-console.log(response);
-    //this.setState({ gaslessNFTName: response });
+    console.log(response);
+    return response;
   };
 
   const mintGaslessNFT = async () => {
@@ -141,7 +167,7 @@ console.log(response);
           [accounts[0]]
         )
         .send({ from: accounts[0], gas: 5000000 });
-        console.log("Transaction: ", tx)
+      console.log("Transaction: ", tx);
     } catch (error) {
       console.log(error);
     }
@@ -186,9 +212,7 @@ console.log(response);
     <div>
       <Header />
       {state.route === "nft" && renderGaslessNFTBody()}
-      <Button onClick={event => refreshApp()}>
-        Refresh
-      </Button>
+      <Button onClick={event => refreshApp()}>Refresh</Button>
       <Footer />
     </div>
   );
