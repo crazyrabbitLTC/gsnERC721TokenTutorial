@@ -110,22 +110,6 @@ function App() {
     if (state.appReady) loadContract();
   }, [state.appReady]);
 
-  //Figure out why this doesn't work. 
-  // useEffect(() => {
-  //   const interval = () => {
-  //    return  setInterval(setState({ ...state, refresh: true }), 2000);
-  //   };
-
-  //   let value = interval();
-  //   return function cleanup(value) {
-  //     clearInterval(interval);
-  //   };
-
-  //   console.log(interval());
-
-    
-  // }, []);
-
   const refreshApp = () => {
     setState({ ...state, appReady: false });
   };
@@ -145,10 +129,11 @@ function App() {
     console.log("Relay provider:", RelayProvider);
     var provider = new RelayProvider(state.web3.currentProvider, {
       txfee: 12,
-      force_gasLimit: 6000000
+      force_gasLimit: 500000
     });
     state.web3.setProvider(provider);
     console.log("Using Relayer");
+    console.log("New Provider: ", state.web3.currentProvider);
   };
 
   const mintGaslessNFT = async () => {
@@ -185,55 +170,12 @@ function App() {
     }
   };
 
-  const renderGaslessNFTBody = () => {
-    return (
-      <div className={styles.wrapper}>
-        {!state.web3 && renderLoader()}
-        {/* {state.web3 &&
-          !state.gaslessContract &&
-          renderDeployCheck("gasless-counter")} */}
-        {state.web3 && (
-          <div className={styles.contracts}>
-            <h1>Gasless NFT Contract</h1>
-            <p>
-              In order to make gasless transactions, press the 'Use Relayer'
-              button below.{" "}
-            </p>
-            <p>(to stop using relayer simply refresh the page)</p>
-            <Button
-              size="small"
-              id="switchToRelayerBtn"
-              onClick={() => switchToRelayer()}
-            >
-              Use Relayer
-            </Button>
-            <Button
-              size="small"
-              id="useDeployNFT"
-              onClick={() => initializeGasLessNFT()}
-            >
-              Initialize Contract
-            </Button>
-            <Button size="small" id="mintNFT" onClick={() => mintGaslessNFT()}>
-              Mint!
-            </Button>
-            <Button size="small" onClick={() => refreshApp()}>
-              Refresh
-            </Button>
-            The name of your NFT is: {contractState.name}
-            <br />
-            The total supply of your NFT is: {contractState.totalSupply}
-            <div className={styles.widgets} />
-          </div>
-        )}
-      </div>
-    );
-  };
+  const RenderTempBody = externalDevRender(state, renderLoader, switchToRelayer, initializeGasLessNFT, mintGaslessNFT, refreshApp, contractState);
 
   return (
     <div>
       <Header />
-      {state.route === "nft" && renderGaslessNFTBody()}
+      {state.route === "nft" && RenderTempBody()}
       <Button size="small" onClick={event => refreshApp()}>
         Refresh
       </Button>
@@ -243,3 +185,38 @@ function App() {
 }
 
 export default App;
+
+
+function externalDevRender(state, renderLoader, switchToRelayer, initializeGasLessNFT, mintGaslessNFT, refreshApp, contractState) {
+  return () => {
+    return (<div className={styles.wrapper}>
+      {!state.web3 && renderLoader()}
+
+      {state.web3 && (<div className={styles.contracts}>
+        <h1>Gasless NFT Contract</h1>
+        <p>
+           order to make gasless transactions, press the 'Use Relayer'
+              button below.{" "}
+        </p>
+        <p>(to stop using relayer simply refresh the page)</p>
+        <Button size="small" id="switchToRelayerBtn" onClick={() => switchToRelayer()}>
+          Use Relayer
+        </Button>
+        <Button size="small" id="useDeployNFT" onClick={() => initializeGasLessNFT()}>
+          Initialize Contract
+        </Button>
+        <Button size="small" id="mintNFT" onClick={() => mintGaslessNFT()}>
+          Mint!
+        </Button>
+        <Button size="small" onClick={() => refreshApp()}>
+          Refresh
+        </Button>
+        The name of your NFT is: {contractState.name}
+        <br />
+        The total supply of your NFT is: {contractState.totalSupply}
+        <div className={styles.widgets} />
+      </div>)}
+    </div>);
+  };
+}
+
